@@ -18,7 +18,6 @@ import java.util.UUID;
 
 //Essa classe contém as regras de negócio de cliente
 //contem as validações.
-
 @Service
 @RequiredArgsConstructor
 public class ClienteService {
@@ -27,8 +26,8 @@ public class ClienteService {
 
     @Transactional
     public ClienteResponse criar(ClienteRequest req) {
-        validarDocumento(req.tipoPessoa(), req.cpfCnpj());
-        if (req.cpfCnpj() != null && repository.existsByCpfCnpj(somenteDigitos(req.cpfCnpj()))) {
+        validarDocumento(req.getTipoPessoa(), req.getCpfCnpj());
+        if (req.getCpfCnpj() != null && repository.existsByCpfCnpj(somenteDigitos(req.getCpfCnpj()))) {
             throw new IllegalArgumentException("CPF/CNPJ já cadastrado.");
         }
         var entity = toEntity(req);
@@ -48,13 +47,13 @@ public class ClienteService {
 
     @Transactional
     public ClienteResponse atualizar(UUID id, ClienteRequest req) {
-        validarDocumento(req.tipoPessoa(), req.cpfCnpj());
+        validarDocumento(req.getTipoPessoa(), req.getCpfCnpj());
 
         var existente = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Cliente não encontrado."));
 
-        if (req.cpfCnpj() != null) {
-            var doc = somenteDigitos(req.cpfCnpj());
+        if (req.getCpfCnpj() != null) {
+            var doc = somenteDigitos(req.getCpfCnpj());
             repository.findByCpfCnpj(doc).ifPresent(outro -> {
                 if (!outro.getId().equals(id)) {
                     throw new IllegalArgumentException("CPF/CNPJ já cadastrado para outro cliente.");
@@ -65,11 +64,11 @@ public class ClienteService {
             existente.setCpfCnpj(null);
         }
 
-        existente.setNome(req.nome());
-        existente.setTipoPessoa(req.tipoPessoa());
-        existente.setEmail(req.email());
-        existente.setTelefone(req.telefone());
-        existente.setEndereco(req.endereco());
+        existente.setNome(req.getNome());
+        existente.setTipoPessoa(req.getTipoPessoa());
+        existente.setEmail(req.getEmail());
+        existente.setTelefone(req.getTelefone());
+        existente.setEndereco(req.getEndereco());
 
         var salvo = repository.save(existente);
         return toResponse(salvo);
@@ -87,10 +86,10 @@ public class ClienteService {
         if (cpfCnpj == null || cpfCnpj.isBlank()) return; // documento opcional
         var doc = somenteDigitos(cpfCnpj);
 
-        if (tipo == TipoPessoa.FISICA && doc.length() != 11) {
+        if (tipo == TipoPessoa.Fisica && doc.length() != 11) {
             throw new IllegalArgumentException("CPF deve ter 11 dígitos (somente números).");
         }
-        if (tipo == TipoPessoa.JURIDICA && doc.length() != 14) {
+        if (tipo == TipoPessoa.Juridica && doc.length() != 14) {
             throw new IllegalArgumentException("CNPJ deve ter 14 dígitos (somente números).");
         }
     }
@@ -99,27 +98,27 @@ public class ClienteService {
         return s.replaceAll("\\D", "");
     }
 
-    //Preciso corrigir essa classe! Daqui pra baixo está com erros de código.
     private Cliente toEntity(ClienteRequest req) {
-        var doc = req.cpfCnpj() == null ? null : somenteDigitos(req.cpfCnpj());
+        var doc = req.getCpfCnpj() == null ? null : somenteDigitos(req.getCpfCnpj());
         return Cliente.builder()
-                .nome(req.nome())
-                .tipoPessoa(req.tipoPessoa())
+                .nome(req.getNome())
+                .tipoPessoa(req.getTipoPessoa())
                 .cpfCnpj(doc)
-                .email(req.email())
-                .telefone(req.telefone())
-                .endereco(req.endereco())
+                .email(req.getEmail())
+                .telefone(req.getTelefone())
+                .endereco(req.getEndereco())
                 .build();
     }
 
     private ClienteResponse toResponse(Cliente c) {
-        return new ClienteResponse(
-                req.getNome();
-                req.getTipoPessoa();
-                req.getCpfCnpj();
-                req.getEmail();
-                req.getTelefone();
-                req.getEndereco();
-        );
+        return ClienteResponse.builder()
+                .id(c.getId())
+                .nome(c.getNome())
+                .tipoPessoa(c.getTipoPessoa())
+                .cpfCnpj(c.getCpfCnpj())
+                .email(c.getEmail())
+                .telefone(c.getTelefone())
+                .endereco(c.getEndereco())
+                .build();
     }
 }
