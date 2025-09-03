@@ -1,3 +1,6 @@
+server:
+  port: 8080
+
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/notvis
@@ -5,13 +8,25 @@ spring:
     password: notvis
     driver-class-name: org.postgresql.Driver
 
+
+
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create #Quando acabar os testes não posso esquecer de mudar para 'update'!!!!!! importantissimo
     show-sql: true
     properties:
       hibernate:
+        default_schema: notvis_schema
         format_sql: true
 
-server:
-  port: 3000
+  mvc:
+    hiddenmethod:
+      filter:
+        enabled: true
+
+# Se você adicionou springdoc:
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html

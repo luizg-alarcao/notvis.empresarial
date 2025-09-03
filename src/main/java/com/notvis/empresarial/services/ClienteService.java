@@ -1,6 +1,8 @@
 package com.notvis.empresarial.services;
 
 import com.notvis.empresarial.domain.Cliente;
+import com.notvis.empresarial.domain.embeddables.Endereco;
+import com.notvis.empresarial.services.CepService;
 import com.notvis.empresarial.domain.enums.TipoPessoa;
 import com.notvis.empresarial.repository.ClienteRepository;
 import com.notvis.empresarial.web.dto.ClienteRequest;
@@ -23,6 +25,7 @@ import java.util.UUID;
 public class ClienteService {
 
     private final ClienteRepository repository;
+    private final CepService cepService;
 
     @Transactional
     public ClienteResponse criar(ClienteRequest req) {
@@ -31,6 +34,24 @@ public class ClienteService {
             throw new IllegalArgumentException("CPF/CNPJ já cadastrado.");
         }
         var entity = toEntity(req);
+
+        //Implementação API 'ViaCep' ao criar cliente.
+        if (entity.getEndereco() != null && entity.getEndereco().getCep() != null) {
+            var viaCepResponse = cepService.buscarEnderecoPorCep(entity.getEndereco().getCep());
+
+            // Converte para Endereco
+            var enderecoViaCep = cepService.converterViaCepParaEndereco(
+                    viaCepResponse,
+                    entity.getEndereco().getCep()
+            );
+
+            // Preserva os campos que o usuário digitou (numero e complemento, se tiver)
+            enderecoViaCep.setNumero(entity.getEndereco().getNumero());
+            enderecoViaCep.setComplemento(entity.getEndereco().getComplemento());
+
+            entity.setEndereco(enderecoViaCep);
+        }
+
         var salvo = repository.save(entity);
         return toResponse(salvo);
     }
@@ -82,6 +103,7 @@ public class ClienteService {
         repository.deleteById(id);
     }
 
+    //Depois irei trocar essas validações simples por validações reais de CPF/CNPJ (algoritmo dos dígitos verificadores)
     private void validarDocumento(TipoPessoa tipo, String cpfCnpj) {
         if (cpfCnpj == null || cpfCnpj.isBlank()) return; // documento opcional
         var doc = somenteDigitos(cpfCnpj);

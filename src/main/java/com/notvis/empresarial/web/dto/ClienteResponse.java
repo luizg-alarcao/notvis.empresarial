@@ -14,11 +14,11 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class ClienteResponse {
-    UUID id;
-    String nome;
-    TipoPessoa tipoPessoa;
-    String cpfCnpj;
-    String email;
-    String telefone;
-    Endereco endereco;
+    private UUID id;
+    private String nome;
+    private TipoPessoa tipoPessoa;
+    private String cpfCnpj;
+    private String email;
+    private String telefone;
+    private Endereco endereco;
 }
