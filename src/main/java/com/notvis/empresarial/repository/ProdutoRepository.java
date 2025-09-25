@@ -10,4 +10,3 @@ public interface ProdutoRepository extends JpaRepository<Produto, UUID> {
     Optional<Produto> findByCodigoIgnoreCase(String codigo);
     boolean existsByCodigoIgnoreCase(String codigo);
 }
-//Parei aqui....
